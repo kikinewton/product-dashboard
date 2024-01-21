@@ -1,0 +1,93 @@
+package com.bsupply.productdashboard.service;
+
+import com.bsupply.productdashboard.dto.PageResponseDto;
+import com.bsupply.productdashboard.dto.request.CustomerRequest;
+import com.bsupply.productdashboard.dto.response.CustomerResponse;
+import com.bsupply.productdashboard.entity.Customer;
+import com.bsupply.productdashboard.exception.CustomerNotFoundException;
+import com.bsupply.productdashboard.exception.DuplicateCustomerNameException;
+import com.bsupply.productdashboard.repository.CustomerRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.UUID;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class CustomerService {
+
+    private final CustomerRepository customerRepository;
+
+    public void addCustomer(CustomerRequest customerRequest) {
+
+        checkCustomerNameExist(customerRequest.name());
+        log.info("Add customer with details {}", customerRequest);
+        Customer customer = new Customer();
+        customer.setName(customerRequest.name());
+        customer.setDescription(customerRequest.description());
+        customer.setLocation(customerRequest.location());
+        customer.setEmail(customerRequest.email());
+        customer.setPhoneNumber(customerRequest.phoneNumber());
+        customerRepository.save(customer);
+    }
+
+    private void checkCustomerNameExist(String customerName) {
+
+        if (customerRepository.existsByName(customerName)) {
+            throw new DuplicateCustomerNameException(customerName);
+        }
+    }
+
+    public CustomerResponse getCustomerById(UUID customerId) {
+
+        log.info("Fetch customer with id: {}", customerId);
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new CustomerNotFoundException(customerId.toString()));
+        return new CustomerResponse(
+                customer.getId(),
+                customer.getName(),
+                customer.getDescription(),
+                customer.getLocation(),
+                customer.getEmail(),
+                customer.getPhoneNumber());
+    }
+
+    public PageResponseDto<CustomerResponse> getAllCustomers(Pageable pageable) {
+
+        log.info("Fetch all customers");
+        Page<Customer> customers = customerRepository.findAll(pageable);
+        return PageResponseDto.wrapResponse(customers);
+    }
+
+    public CustomerResponse updateCustomer(UUID customerId, CustomerRequest customerRequest) {
+
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new CustomerNotFoundException(customerId.toString()));
+
+        log.info("Update customer with id: {}", customerId);
+        customer.setName(customerRequest.name());
+        customer.setDescription(customerRequest.description());
+        customer.setPhoneNumber(customerRequest.phoneNumber());
+        customer.setLocation(customerRequest.location());
+        customer.setEmail(customerRequest.email());
+        Customer saved = customerRepository.save(customer);
+        return new CustomerResponse(
+                saved.getId(),
+                saved.getName(),
+                saved.getDescription(),
+                saved.getLocation(),
+                saved.getEmail(),
+                saved.getPhoneNumber());
+    }
+
+    public void deleteCustomer(UUID customerId) {
+
+        log.info("Attempt to delete customer with id: {}", customerId);
+        customerRepository.deleteById(customerId);
+        log.info("Customer with id: {} deleted", customerId);
+    }
+}
