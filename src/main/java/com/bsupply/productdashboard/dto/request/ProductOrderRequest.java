@@ -1,12 +1,11 @@
 package com.bsupply.productdashboard.dto.request;
 
-import com.bsupply.productdashboard.dto.response.AirlineResponse;
-import com.bsupply.productdashboard.dto.response.CustomerResponse;
-import com.bsupply.productdashboard.dto.response.ProductResponse;
+import java.util.UUID;
 
-public record ProductOrderRequest(ProductResponse product,
-                                  CustomerResponse customer,
-                                  AirlineResponse airline,
+public record ProductOrderRequest(UUID productId,
+                                  UUID customerId,
+                                  UUID airlineId,
                                   int quantity,
+                                  String description,
                                   String flight) {
 }

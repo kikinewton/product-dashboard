@@ -48,6 +48,9 @@ public class ProductOrder {
 
     private int quantity;
 
+    @Column(length = 200)
+    private String description;
+
     @ManyToOne
     @JoinColumn(name = "airline_id", referencedColumnName = "id")
     private Airline airline;

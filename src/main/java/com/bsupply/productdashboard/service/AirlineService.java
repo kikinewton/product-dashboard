@@ -5,6 +5,7 @@ import com.bsupply.productdashboard.dto.response.AirlineResponse;
 import com.bsupply.productdashboard.entity.Airline;
 import com.bsupply.productdashboard.exception.AirlineNotFoundException;
 import com.bsupply.productdashboard.exception.DuplicateAirlineNameException;
+import com.bsupply.productdashboard.factory.AirlineResponseFactory;
 import com.bsupply.productdashboard.repository.AirlineRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,7 +39,7 @@ public class AirlineService {
         log.info("Fetch all airlines");
         return airlineRepository.findAll()
                 .stream()
-                .map(a -> new AirlineResponse(a.getId(), a.getName(), a.getDescription()))
+                .map(a -> AirlineResponseFactory.getAirlineResponse(a))
                 .collect(Collectors.toList());
     }
 
@@ -68,7 +69,7 @@ public class AirlineService {
 
         Airline updatedAirline = airlineRepository.save(airline);
 
-        return new AirlineResponse(updatedAirline.getId(), updatedAirline.getName(), updatedAirline.getDescription());
+        return AirlineResponseFactory.getAirlineResponse(updatedAirline);
     }
 
     public void deleteAirline(UUID airlineId) {

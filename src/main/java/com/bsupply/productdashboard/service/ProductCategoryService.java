@@ -6,6 +6,7 @@ import com.bsupply.productdashboard.dto.response.ProductCategoryResponse;
 import com.bsupply.productdashboard.entity.ProductCategory;
 import com.bsupply.productdashboard.exception.DuplicateProductCategoryNameException;
 import com.bsupply.productdashboard.exception.ProductCategoryNotFoundException;
+import com.bsupply.productdashboard.factory.ProductCategoryResponseFactory;
 import com.bsupply.productdashboard.repository.ProductCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,10 +62,7 @@ public class ProductCategoryService {
         productCategory.setName(productCategoryRequest.name());
         productCategory.setDescription(productCategoryRequest.description());
         ProductCategory updatedCategory = productCategoryRepository.save(productCategory);
-        return new ProductCategoryResponse(
-                updatedCategory.getId(),
-                updatedCategory.getName(),
-                updatedCategory.getDescription());
+        return ProductCategoryResponseFactory.getProductCategoryResponse(updatedCategory);
     }
 
     public void deleteProductCategory(UUID productCategoryId) {

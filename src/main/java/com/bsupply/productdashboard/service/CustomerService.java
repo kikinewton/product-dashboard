@@ -6,6 +6,7 @@ import com.bsupply.productdashboard.dto.response.CustomerResponse;
 import com.bsupply.productdashboard.entity.Customer;
 import com.bsupply.productdashboard.exception.CustomerNotFoundException;
 import com.bsupply.productdashboard.exception.DuplicateCustomerNameException;
+import com.bsupply.productdashboard.factory.CustomerResponseFactory;
 import com.bsupply.productdashboard.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +60,8 @@ public class CustomerService {
     public PageResponseDto<CustomerResponse> getAllCustomers(Pageable pageable) {
 
         log.info("Fetch all customers");
-        Page<Customer> customers = customerRepository.findAll(pageable);
+        Page<CustomerResponse> customers = customerRepository.findAll(pageable)
+                .map(c -> CustomerResponseFactory.getCustomerResponse(c));
         return PageResponseDto.wrapResponse(customers);
     }
 
@@ -75,13 +77,7 @@ public class CustomerService {
         customer.setLocation(customerRequest.location());
         customer.setEmail(customerRequest.email());
         Customer saved = customerRepository.save(customer);
-        return new CustomerResponse(
-                saved.getId(),
-                saved.getName(),
-                saved.getDescription(),
-                saved.getLocation(),
-                saved.getEmail(),
-                saved.getPhoneNumber());
+        return CustomerResponseFactory.getCustomerResponse(saved);
     }
 
     public void deleteCustomer(UUID customerId) {

@@ -8,7 +8,10 @@ import com.bsupply.productdashboard.entity.Product;
 import com.bsupply.productdashboard.entity.ProductCategory;
 import com.bsupply.productdashboard.enums.MeasurementUnits;
 import com.bsupply.productdashboard.exception.DuplicateProductNameException;
+import com.bsupply.productdashboard.exception.ProductCategoryNotFoundException;
 import com.bsupply.productdashboard.exception.ProductNotFoundException;
+import com.bsupply.productdashboard.factory.ProductResponseFactory;
+import com.bsupply.productdashboard.repository.ProductCategoryRepository;
 import com.bsupply.productdashboard.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,14 +29,18 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
+    private final ProductCategoryRepository productCategoryRepository;
+
     @Transactional
     public void addProduct(ProductRequest productRequest) {
+
+        ProductCategory productCategory = getProductCategory(productRequest);
 
         checkIfProductNameExist(productRequest.name());
         log.info("Adding product with details: {}", productRequest);
 
         Product product = new Product();
-        product.setProductCategory(productRequest.productCategory());
+        product.setProductCategory(productCategory);
         product.setDescription(productRequest.description());
         product.setName(productRequest.name());
         product.setMeasurementUnits(productRequest.measurementUnits());
@@ -43,6 +50,7 @@ public class ProductService {
         product.setPackWeightInKg(weightPerPackInKg);
         productRepository.save(product);
     }
+
 
     public ProductResponse getProductById(UUID productId) {
 
@@ -89,8 +97,10 @@ public class ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException(productId.toString()));
 
+        ProductCategory productCategory = getProductCategory(productRequest);
+
         log.info("Update product with details {}", productRequest);
-        product.setProductCategory(productRequest.productCategory());
+        product.setProductCategory(productCategory);
         product.setName(productRequest.name());
         product.setDescription(productRequest.description());
         product.setWeight(productRequest.weight());
@@ -99,22 +109,19 @@ public class ProductService {
         double weightPerPackInKg = calculateWeightPerPackInKg(productRequest.weight(), productRequest.measurementUnits());
         product.setPackWeightInKg(weightPerPackInKg);
         Product saved = productRepository.save(product);
-        ProductCategoryResponse productCategoryResponse =
-                new ProductCategoryResponse(saved.getId(), saved.getName(), saved.getDescription());
-        return new ProductResponse(
-                saved.getId(),
-                saved.getName(),
-                saved.getDescription(),
-                saved.getQuantityPerPack(),
-                saved.getMeasurementUnits(),
-                saved.getPackWeightInKg(),
-                productCategoryResponse
-        );
+        return ProductResponseFactory.getProductResponse(saved);
     }
 
     public void deleteProduct(UUID productId) {
 
         log.info("Delete product with id: {}", productId);
         productRepository.deleteById(productId);
+    }
+
+    private ProductCategory getProductCategory(ProductRequest productRequest) {
+        return productCategoryRepository.findById(productRequest.productCategoryId())
+                .orElseThrow(() ->
+                        new ProductCategoryNotFoundException(productRequest.productCategoryId().toString()));
+
     }
 }
