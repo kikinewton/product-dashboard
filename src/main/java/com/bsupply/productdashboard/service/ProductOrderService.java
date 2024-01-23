@@ -25,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.UUID;
 
 @Slf4j
@@ -82,16 +83,27 @@ public class ProductOrderService {
         return PageResponseDto.wrapResponse(result);
     }
 
-    public PageResponseDto<ProductOrderResponse> getProductOrdersByCustomer(UUID customerId, Pageable pageable) {
-
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new CustomerNotFoundException(customerId.toString()));
-        log.info("Fetch all product orders by customer {}", customerId);
+    public PageResponseDto<ProductOrderResponse> getProductOrdersBetweenDates(
+            Date startPeriod,
+            Date endPeriod,
+            Pageable pageable) {
 
         GenericSpecification<ProductOrder> productOrderSpecification = new GenericSpecification<>();
-        productOrderSpecification.add(new SearchCriteria("customer", customer, SearchOperation.EQUAL));
-        Page<ProductOrderResponse> result = productOrderRepository.findAll(productOrderSpecification, pageable)
+        productOrderSpecification.add(new SearchCriteria("createdAt", startPeriod, SearchOperation.GREATER_THAN_EQUAL));
+        productOrderSpecification.add(new SearchCriteria("createdAt", endPeriod, SearchOperation.LESS_THAN_EQUAL));
+        Page<ProductOrderResponse> productOrders = productOrderRepository.findAll(productOrderSpecification, pageable)
                 .map(p -> ProductOrderResponseFactory.getProductOrderResponse(p));
+        return PageResponseDto.wrapResponse(productOrders);
+    }
+    public PageResponseDto<ProductOrderResponse> getProductOrdersByCustomer(UUID customerId, Pageable pageable) {
+
+        customerRepository.findById(customerId)
+                .orElseThrow(() -> new CustomerNotFoundException(customerId.toString()));
+        log.info("Fetch all product orders by customer {}", customerId);
+        Page<ProductOrderResponse> result = productOrderRepository
+                .findByCustomerId(customerId, pageable)
+                .map(p -> ProductOrderResponseFactory.getProductOrderResponse(p));
+
         return PageResponseDto.wrapResponse(result);
     }
 }

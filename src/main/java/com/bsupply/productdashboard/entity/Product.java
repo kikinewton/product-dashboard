@@ -57,7 +57,7 @@ public class Product {
     private MeasurementUnits measurementUnits;
 
     @Positive(message = "Weight must be positive")
-    private int weight;
+    private double weight;
 
     @PositiveOrZero
     private double packWeightInKg;
@@ -86,7 +86,7 @@ public class Product {
 
     @PrePersist
     private void calculateWeightPerPack() {
-        if (MeasurementUnits.GRAM == measurementUnits) {
+        if (MeasurementUnits.GRAM.equals(measurementUnits)) {
             packWeightInKg = quantityPerPack * (weight / 1000);
         } else packWeightInKg = quantityPerPack * weight;
     }

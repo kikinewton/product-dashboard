@@ -7,6 +7,7 @@ import com.bsupply.productdashboard.service.ProductOrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Date;
 import java.util.UUID;
 
 @RestController
@@ -37,7 +39,7 @@ public class ProductOrderController {
     public ResponseEntity<PageResponseDto<ProductOrderResponse>> getProductOrders(
             @RequestParam(defaultValue = "0") int pageNo,
             @RequestParam(defaultValue = "200") int pageSize
-    ){
+    ) {
 
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         PageResponseDto<ProductOrderResponse> productOrders = productOrderService.getProductOrders(pageable);
@@ -61,5 +63,19 @@ public class ProductOrderController {
         PageResponseDto<ProductOrderResponse> productOrdersByCustomer =
                 productOrderService.getProductOrdersByCustomer(customerId, pageable);
         return ResponseEntity.ok(productOrdersByCustomer);
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<PageResponseDto<ProductOrderResponse>> getProductOrdersBetweenDates(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Date startPeriod,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Date endPeriod,
+            @RequestParam(defaultValue = "0") int pageNo,
+            @RequestParam(defaultValue = "200") int pageSize
+    ) {
+
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        PageResponseDto<ProductOrderResponse> productOrders = productOrderService
+                .getProductOrdersBetweenDates(startPeriod, endPeriod, pageable);
+        return ResponseEntity.ok(productOrders);
     }
 }
