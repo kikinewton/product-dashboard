@@ -1,6 +1,7 @@
 package com.bsupply.productdashboard.controller;
 
 import com.bsupply.productdashboard.dto.PageResponseDto;
+import com.bsupply.productdashboard.dto.request.OrderFulfillmentRequest;
 import com.bsupply.productdashboard.dto.request.ProductOrderRequest;
 import com.bsupply.productdashboard.dto.response.ProductOrderResponse;
 import com.bsupply.productdashboard.service.ProductOrderService;
@@ -70,12 +71,21 @@ public class ProductOrderController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Date startPeriod,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Date endPeriod,
             @RequestParam(defaultValue = "0") int pageNo,
-            @RequestParam(defaultValue = "200") int pageSize
+            @RequestParam(defaultValue = "600") int pageSize
     ) {
 
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         PageResponseDto<ProductOrderResponse> productOrders = productOrderService
                 .getProductOrdersBetweenDates(startPeriod, endPeriod, pageable);
         return ResponseEntity.ok(productOrders);
+    }
+
+    @PostMapping("/{productOrderId}/fulfillment")
+    public ResponseEntity<Void> orderFulfillment(
+            @PathVariable UUID productOrderId,
+            @RequestBody OrderFulfillmentRequest orderFulfillmentRequest) {
+
+        productOrderService.orderFulfillment(productOrderId, orderFulfillmentRequest);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

@@ -1,6 +1,7 @@
 package com.bsupply.productdashboard.controller;
 
 import com.bsupply.productdashboard.common.annotation.IntegrationTest;
+import com.bsupply.productdashboard.dto.request.OrderFulfillmentRequest;
 import com.bsupply.productdashboard.dto.request.ProductAndQuantityDto;
 import com.bsupply.productdashboard.dto.request.ProductOrderRequest;
 import com.bsupply.productdashboard.enums.OrderStatus;
@@ -14,6 +15,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
@@ -66,5 +68,32 @@ class ProductOrderControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(OrderStatus.PENDING.name()))
                 .andExpect(jsonPath("$.customer.id").value("2cd4dcae-3a41-4194-9e0d-0cef9501a5f9"));
+    }
+
+    @Test
+    public void shouldGetProductOrderByCustomerId() throws Exception {
+
+        String customerId = "2cd4dcae-3a41-4194-9e0d-0cef9501a5f9";
+        mockMvc.perform(get("/api/v1/productOrders/customers/{customerId}", customerId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].status").value(OrderStatus.PENDING.name()))
+                .andExpect(jsonPath("$.data[0].customer.id").value("2cd4dcae-3a41-4194-9e0d-0cef9501a5f9"));
+    }
+
+    @Test
+    public void throwErrorWhenOrderDetailsIsEmpty() throws Exception {
+
+        String productOrderId = "d51d3f24-8ad7-43b2-87ac-27b1d03c0a1e";
+        OrderFulfillmentRequest orderFulfillmentRequest = new OrderFulfillmentRequest(
+                UUID.fromString(productOrderId),
+                Collections.emptyList());
+
+        String content = objectMapper.writeValueAsString(orderFulfillmentRequest);
+        mockMvc.perform(post("/api/v1/productOrders/{productOrderId}/fulfillment", productOrderId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(content))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("Product order with id %s can not be fulfilled".formatted(productOrderId)));
     }
 }

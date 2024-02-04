@@ -5,6 +5,7 @@ import com.bsupply.productdashboard.exception.DuplicateAirlineNameException;
 import com.bsupply.productdashboard.exception.DuplicateCustomerNameException;
 import com.bsupply.productdashboard.exception.DuplicateProductCategoryNameException;
 import com.bsupply.productdashboard.exception.DuplicateProductNameException;
+import com.bsupply.productdashboard.exception.ProductOrderFulfillmentException;
 import jakarta.validation.UnexpectedTypeException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,7 +29,8 @@ public class ExceptionControllerAdvice {
             DuplicateAirlineNameException.class,
             DuplicateCustomerNameException.class,
             DuplicateProductNameException.class,
-            DuplicateProductCategoryNameException.class
+            DuplicateProductCategoryNameException.class,
+            ProductOrderFulfillmentException.class
     })
     public ResponseEntity<ApiError> handleInputError(Exception exception) {
 

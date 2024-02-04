@@ -15,7 +15,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -39,11 +38,6 @@ public class OrderDetail {
 
     @Column(nullable = false)
     private int quantity;
-
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    private ProductOrder productOrder;
-
-    private BigDecimal unitPrice;
 
     @CreationTimestamp
     private Instant createdAt;

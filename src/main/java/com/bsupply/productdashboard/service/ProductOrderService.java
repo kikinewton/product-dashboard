@@ -1,6 +1,8 @@
 package com.bsupply.productdashboard.service;
 
 import com.bsupply.productdashboard.dto.PageResponseDto;
+import com.bsupply.productdashboard.dto.request.OrderDetailRequest;
+import com.bsupply.productdashboard.dto.request.OrderFulfillmentRequest;
 import com.bsupply.productdashboard.dto.request.ProductAndQuantityDto;
 import com.bsupply.productdashboard.dto.request.ProductOrderRequest;
 import com.bsupply.productdashboard.dto.response.ProductOrderResponse;
@@ -9,10 +11,12 @@ import com.bsupply.productdashboard.entity.Customer;
 import com.bsupply.productdashboard.entity.OrderDetail;
 import com.bsupply.productdashboard.entity.Product;
 import com.bsupply.productdashboard.entity.ProductOrder;
+import com.bsupply.productdashboard.enums.OrderStatus;
 import com.bsupply.productdashboard.exception.AirlineNotFoundException;
 import com.bsupply.productdashboard.exception.CustomerNotFoundException;
 import com.bsupply.productdashboard.exception.ProductNotFoundException;
 import com.bsupply.productdashboard.exception.ProductOrderNotFoundException;
+import com.bsupply.productdashboard.exception.ProductOrderFulfillmentException;
 import com.bsupply.productdashboard.factory.ProductOrderResponseFactory;
 import com.bsupply.productdashboard.repository.AirlineRepository;
 import com.bsupply.productdashboard.repository.CustomerRepository;
@@ -158,4 +162,47 @@ public class ProductOrderService {
                 .quantity(quantity)
                 .build();
     }
+
+
+    public OrderDetail createOrderFulfillment(OrderDetailRequest orderFulfillmentRequest) {
+
+        UUID productId = orderFulfillmentRequest.productId();
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(productId.toString()));
+
+        return OrderDetail.builder()
+                .quantity(orderFulfillmentRequest.quantity())
+                .product(product)
+                .build();
+    }
+
+    @CacheEvict(
+            value = {"productOrder", "productOrderById"},
+            allEntries = true)
+    @Transactional
+    public void orderFulfillment(UUID productOrderId, OrderFulfillmentRequest orderFulfillmentRequest) {
+
+        log.info("Order fulfillment for id: {}", productOrderId);
+        checkOrderFulfillmentStatus(productOrderId);
+
+        List<OrderDetail> orderDetails = orderFulfillmentRequest.orderDetails()
+                .stream()
+                .map(o -> createOrderFulfillment(o))
+                .collect(Collectors.toList());
+
+        orderDetailRepository.saveAll(orderDetails);
+    }
+
+    private void checkOrderFulfillmentStatus(UUID productOrderId) {
+
+        log.info("Check status of order");
+        ProductOrder productOrder = productOrderRepository
+                .findById(productOrderId)
+                .orElseThrow(() -> new ProductOrderNotFoundException(productOrderId.toString()));
+
+        if (productOrder.getOrderDetail().isEmpty() || productOrder.getStatus() != OrderStatus.PENDING) {
+            throw new ProductOrderFulfillmentException(productOrderId.toString());
+        }
+    }
+
 }
