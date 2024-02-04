@@ -21,6 +21,8 @@ import com.bsupply.productdashboard.specification.SearchCriteria;
 import com.bsupply.productdashboard.specification.SearchOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -43,7 +45,9 @@ public class ProductOrderService {
 
 
 
-
+    @CacheEvict(
+            value = {"productOrder", "productOrderById"},
+            allEntries = true)
     public void addProductOrder(ProductOrderRequest productOrderRequest) {
 
         Airline airline = airlineRepository.findById(productOrderRequest.airlineId())
@@ -66,6 +70,7 @@ public class ProductOrderService {
         productOrderRepository.save(productOrder);
     }
 
+    @Cacheable(value = "productOrderById")
     public ProductOrderResponse getProductOrderById(UUID productOrderId) {
 
         log.info("Find product order by id {}", productOrderId);
@@ -75,6 +80,7 @@ public class ProductOrderService {
         return ProductOrderResponseFactory.getProductOrderResponse(productOrder);
     }
 
+    @Cacheable(value = "productOrders")
     public PageResponseDto<ProductOrderResponse> getProductOrders(Pageable pageable) {
 
         log.info("Fetch all product orders");
@@ -95,6 +101,8 @@ public class ProductOrderService {
                 .map(p -> ProductOrderResponseFactory.getProductOrderResponse(p));
         return PageResponseDto.wrapResponse(productOrders);
     }
+
+    @Cacheable(value = "productOrdersByCustomerId")
     public PageResponseDto<ProductOrderResponse> getProductOrdersByCustomer(UUID customerId, Pageable pageable) {
 
         customerRepository.findById(customerId)

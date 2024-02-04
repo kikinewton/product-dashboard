@@ -15,6 +15,8 @@ import com.bsupply.productdashboard.repository.ProductCategoryRepository;
 import com.bsupply.productdashboard.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,9 @@ public class ProductService {
     private final ProductCategoryRepository productCategoryRepository;
 
     @Transactional
+    @CacheEvict(
+            value = {"products", "productById"},
+            allEntries = true)
     public void addProduct(ProductRequest productRequest) {
 
         ProductCategory productCategory = getProductCategory(productRequest);
@@ -51,7 +56,7 @@ public class ProductService {
         productRepository.save(product);
     }
 
-
+    @Cacheable(value = "productById")
     public ProductResponse getProductById(UUID productId) {
 
         log.info("Fetch product with id: {}", productId);
@@ -72,6 +77,7 @@ public class ProductService {
         );
     }
 
+    @Cacheable(value = "products")
     public PageResponseDto<ProductResponse> getAllProducts(Pageable pageable) {
 
         log.info("Fetch all products");
@@ -92,6 +98,9 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(
+            value = {"products", "productById"},
+            allEntries = true)
     public ProductResponse updateProduct(UUID productId, ProductRequest productRequest) {
 
         Product product = productRepository.findById(productId)
@@ -112,6 +121,9 @@ public class ProductService {
         return ProductResponseFactory.getProductResponse(saved);
     }
 
+    @CacheEvict(
+            value = {"products", "productById"},
+            allEntries = true)
     public void deleteProduct(UUID productId) {
 
         log.info("Delete product with id: {}", productId);

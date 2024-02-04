@@ -10,6 +10,8 @@ import com.bsupply.productdashboard.factory.CustomerResponseFactory;
 import com.bsupply.productdashboard.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,9 @@ import java.util.UUID;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
-
+    @CacheEvict(
+            value = {"customers", "customerById"},
+            allEntries = true)
     public void addCustomer(CustomerRequest customerRequest) {
 
         checkCustomerNameExist(customerRequest.name());
@@ -43,6 +47,7 @@ public class CustomerService {
         }
     }
 
+    @Cacheable(value = "customerById", key = "customerId")
     public CustomerResponse getCustomerById(UUID customerId) {
 
         log.info("Fetch customer with id: {}", customerId);
@@ -57,6 +62,7 @@ public class CustomerService {
                 customer.getPhoneNumber());
     }
 
+    @Cacheable(value = "customers")
     public PageResponseDto<CustomerResponse> getAllCustomers(Pageable pageable) {
 
         log.info("Fetch all customers");
@@ -65,6 +71,9 @@ public class CustomerService {
         return PageResponseDto.wrapResponse(customers);
     }
 
+    @CacheEvict(
+            value = {"customers", "customerById"},
+            allEntries = true)
     public CustomerResponse updateCustomer(UUID customerId, CustomerRequest customerRequest) {
 
         Customer customer = customerRepository.findById(customerId)
@@ -80,6 +89,9 @@ public class CustomerService {
         return CustomerResponseFactory.getCustomerResponse(saved);
     }
 
+    @CacheEvict(
+            value = {"customers", "customerById"},
+            allEntries = true)
     public void deleteCustomer(UUID customerId) {
 
         log.info("Attempt to delete customer with id: {}", customerId);

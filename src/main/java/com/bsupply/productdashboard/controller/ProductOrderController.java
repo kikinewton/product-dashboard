@@ -38,7 +38,7 @@ public class ProductOrderController {
     @GetMapping
     public ResponseEntity<PageResponseDto<ProductOrderResponse>> getProductOrders(
             @RequestParam(defaultValue = "0") int pageNo,
-            @RequestParam(defaultValue = "200") int pageSize
+            @RequestParam(defaultValue = "600") int pageSize
     ) {
 
         Pageable pageable = PageRequest.of(pageNo, pageSize);

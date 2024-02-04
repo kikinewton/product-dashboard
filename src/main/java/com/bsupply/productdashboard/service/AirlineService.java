@@ -8,6 +8,8 @@ import com.bsupply.productdashboard.exception.DuplicateAirlineNameException;
 import com.bsupply.productdashboard.factory.AirlineResponseFactory;
 import com.bsupply.productdashboard.repository.AirlineRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,6 +26,9 @@ public class AirlineService {
         this.airlineRepository = airlineRepository;
     }
 
+    @CacheEvict(
+            value = {"airlines", "airlineById"},
+            allEntries = true)
     public void addAirline(AirlineRequest airlineRequest) {
 
         checkIfNameExists(airlineRequest.name());
@@ -34,6 +39,7 @@ public class AirlineService {
         airlineRepository.save(airline);
     }
 
+    @Cacheable(value = "airlines")
     public List<AirlineResponse> getAirlines() {
 
         log.info("Fetch all airlines");
@@ -43,6 +49,7 @@ public class AirlineService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "airlineById", key = "airlineId")
     public AirlineResponse getAirlineById(UUID airlineId) {
 
         log.info("Fetch airline with id: {}", airlineId);
@@ -58,6 +65,9 @@ public class AirlineService {
         }
     }
 
+    @CacheEvict(
+            value = {"airlines", "airlineById"},
+            allEntries = true)
     public AirlineResponse updateAirline(UUID airlineId, AirlineRequest airlineRequest) {
         log.info("Update airline with id: {}", airlineId);
 
@@ -72,6 +82,9 @@ public class AirlineService {
         return AirlineResponseFactory.getAirlineResponse(updatedAirline);
     }
 
+    @CacheEvict(
+            value = {"airlines", "airlineById"},
+            allEntries = true)
     public void deleteAirline(UUID airlineId) {
 
         log.info("Attempting to delete airline with id: {}", airlineId);

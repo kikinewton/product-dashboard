@@ -10,6 +10,8 @@ import com.bsupply.productdashboard.factory.ProductCategoryResponseFactory;
 import com.bsupply.productdashboard.repository.ProductCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,9 @@ public class ProductCategoryService {
 
     private final ProductCategoryRepository productCategoryRepository;
 
+    @CacheEvict(
+            value = {"category", "categoryById"},
+            allEntries = true)
     public void addProductCategory(ProductCategoryRequest productCategoryRequest) {
 
         checkProductCategoryNameExist(productCategoryRequest.name());
@@ -34,6 +39,7 @@ public class ProductCategoryService {
         productCategoryRepository.save(productCategory);
     }
 
+    @Cacheable(value = "categoryById", key = "productCategoryId")
     public ProductCategoryResponse getProductCategoryById(UUID productCategoryId) {
 
         log.info("Fetch product category with id: %s".formatted(productCategoryId));
@@ -43,6 +49,7 @@ public class ProductCategoryService {
                 .orElseThrow(() -> new ProductCategoryNotFoundException(productCategoryId.toString()));
     }
 
+    @Cacheable(value = "categories")
     public PageResponseDto<ProductCategoryResponse> getProductCategories(Pageable pageable) {
 
         log.info("Fetch all product categories");
@@ -52,6 +59,9 @@ public class ProductCategoryService {
         return PageResponseDto.wrapResponse(result);
     }
 
+    @CacheEvict(
+            value = {"category", "categoryById"},
+            allEntries = true)
     public ProductCategoryResponse updateProductCategory(UUID productCategoryId,
                                                          ProductCategoryRequest productCategoryRequest) {
 
@@ -65,6 +75,9 @@ public class ProductCategoryService {
         return ProductCategoryResponseFactory.getProductCategoryResponse(updatedCategory);
     }
 
+    @CacheEvict(
+            value = {"category", "categoryById"},
+            allEntries = true)
     public void deleteProductCategory(UUID productCategoryId) {
 
         log.info("Attempt to delete product category with id: {}", productCategoryId);
