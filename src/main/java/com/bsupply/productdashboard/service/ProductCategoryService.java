@@ -39,7 +39,7 @@ public class ProductCategoryService {
         productCategoryRepository.save(productCategory);
     }
 
-    @Cacheable(value = "categoryById", key = "productCategoryId")
+    @Cacheable(value = "categoryById")
     public ProductCategoryResponse getProductCategoryById(UUID productCategoryId) {
 
         log.info("Fetch product category with id: %s".formatted(productCategoryId));

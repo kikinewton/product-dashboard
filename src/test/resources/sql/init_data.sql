@@ -10,3 +10,8 @@ values ('2cd4dcae-3a41-4194-9e0d-0cef9501a5f9', 'Sainsbury', 'Food store', 'supp
 
 insert into product (id, name, description, measurement_units, product_category_id, quantity_per_pack, weight, pack_weight_in_kg)
 values ('e9a4b64c-71ab-451a-8aed-b2598b9ff5f1', 'Mango cuts', 'Freshly cut', 'GRAM', 'd81165f0-b519-4574-9c7b-845393c6e993', 4, '240', 0.96);
+
+insert into product_order
+(id, airline_id, customer_id, description, flight, required_date)
+values ('d51d3f24-8ad7-43b2-87ac-27b1d03c0a1e','094551bd-881a-474a-b652-44a4cddbf3fb','2cd4dcae-3a41-4194-9e0d-0cef9501a5f9',
+        'Product order A', 'M0DD2', '2024-03-03T22:00:00Z');

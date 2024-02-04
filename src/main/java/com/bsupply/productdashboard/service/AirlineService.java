@@ -49,7 +49,7 @@ public class AirlineService {
                 .collect(Collectors.toList());
     }
 
-    @Cacheable(value = "airlineById", key = "airlineId")
+    @Cacheable(value = "airlineById")
     public AirlineResponse getAirlineById(UUID airlineId) {
 
         log.info("Fetch airline with id: {}", airlineId);

@@ -47,7 +47,7 @@ public class CustomerService {
         }
     }
 
-    @Cacheable(value = "customerById", key = "customerId")
+    @Cacheable(value = "customerById")
     public CustomerResponse getCustomerById(UUID customerId) {
 
         log.info("Fetch customer with id: {}", customerId);

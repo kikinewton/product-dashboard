@@ -1,11 +1,13 @@
 package com.bsupply.productdashboard.dto.response;
 
+import com.bsupply.productdashboard.enums.OrderStatus;
+
+import java.util.List;
 import java.util.UUID;
 
 public record ProductOrderResponse(UUID id,
-                                   ProductResponse product,
                                    CustomerResponse customer,
                                    AirlineResponse airline,
-                                   int quantity,
-                                   String flight) {
+                                   OrderStatus status,
+                                   List<OrderDetailResponse> orderDetails) {
 }

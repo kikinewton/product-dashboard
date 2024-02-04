@@ -1,10 +1,12 @@
 package com.bsupply.productdashboard.service;
 
 import com.bsupply.productdashboard.dto.PageResponseDto;
+import com.bsupply.productdashboard.dto.request.ProductAndQuantityDto;
 import com.bsupply.productdashboard.dto.request.ProductOrderRequest;
 import com.bsupply.productdashboard.dto.response.ProductOrderResponse;
 import com.bsupply.productdashboard.entity.Airline;
 import com.bsupply.productdashboard.entity.Customer;
+import com.bsupply.productdashboard.entity.OrderDetail;
 import com.bsupply.productdashboard.entity.Product;
 import com.bsupply.productdashboard.entity.ProductOrder;
 import com.bsupply.productdashboard.exception.AirlineNotFoundException;
@@ -14,6 +16,7 @@ import com.bsupply.productdashboard.exception.ProductOrderNotFoundException;
 import com.bsupply.productdashboard.factory.ProductOrderResponseFactory;
 import com.bsupply.productdashboard.repository.AirlineRepository;
 import com.bsupply.productdashboard.repository.CustomerRepository;
+import com.bsupply.productdashboard.repository.OrderDetailRepository;
 import com.bsupply.productdashboard.repository.ProductOrderRepository;
 import com.bsupply.productdashboard.repository.ProductRepository;
 import com.bsupply.productdashboard.specification.GenericSpecification;
@@ -26,9 +29,14 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -43,11 +51,13 @@ public class ProductOrderService {
 
     private final ProductOrderRepository productOrderRepository;
 
+    private final OrderDetailRepository orderDetailRepository;
 
 
     @CacheEvict(
             value = {"productOrder", "productOrderById"},
             allEntries = true)
+    @Transactional
     public void addProductOrder(ProductOrderRequest productOrderRequest) {
 
         Airline airline = airlineRepository.findById(productOrderRequest.airlineId())
@@ -56,15 +66,14 @@ public class ProductOrderService {
         Customer customer = customerRepository.findById(productOrderRequest.customerId())
                 .orElseThrow(() -> new CustomerNotFoundException(productOrderRequest.customerId().toString()));
 
-        Product product = productRepository.findById(productOrderRequest.productId())
-                .orElseThrow(() -> new ProductNotFoundException(productOrderRequest.productId().toString()));
+        List<OrderDetail> orderDetails = createOrderDetails(productOrderRequest.products());
 
         log.info("Add new product order {}", productOrderRequest);
         ProductOrder productOrder = new ProductOrder();
-        productOrder.setProduct(product);
+        productOrder.setOrderDetail(orderDetails);
         productOrder.setCustomer(customer);
         productOrder.setAirline(airline);
-        productOrder.setQuantity(productOrderRequest.quantity());
+        productOrder.setRequiredDate(productOrderRequest.requiredDate().toInstant());
         productOrder.setFlight(productOrderRequest.flight());
         productOrder.setDescription(productOrderRequest.description());
         productOrderRepository.save(productOrder);
@@ -113,5 +122,40 @@ public class ProductOrderService {
                 .map(p -> ProductOrderResponseFactory.getProductOrderResponse(p));
 
         return PageResponseDto.wrapResponse(result);
+    }
+
+    private List<OrderDetail> createOrderDetails(Set<ProductAndQuantityDto> productsAndQuantities) {
+        Map<UUID, Integer> productQuantityMap = getProductQuantityMap(productsAndQuantities);
+        List<Product> products = fetchProducts(productsAndQuantities);
+
+        List<OrderDetail> orderDetails = products.stream()
+                .map(product -> createOrderDetail(product, productQuantityMap))
+                .collect(Collectors.toList());
+
+        return orderDetailRepository.saveAll(orderDetails);
+    }
+
+    private Map<UUID, Integer> getProductQuantityMap(Set<ProductAndQuantityDto> productsAndQuantities) {
+        return productsAndQuantities.stream()
+                .collect(Collectors.toMap(
+                        ProductAndQuantityDto::productId,
+                        ProductAndQuantityDto::quantity
+                ));
+    }
+
+    private List<Product> fetchProducts(Set<ProductAndQuantityDto> productsAndQuantities) {
+        return productsAndQuantities.stream()
+                .map(ProductAndQuantityDto::productId)
+                .map(productId -> productRepository.findById(productId)
+                        .orElseThrow(() -> new ProductNotFoundException(productId.toString())))
+                .collect(Collectors.toList());
+    }
+
+    private OrderDetail createOrderDetail(Product product, Map<UUID, Integer> productQuantityMap) {
+        int quantity = productQuantityMap.getOrDefault(product.getId(), 0);
+        return OrderDetail.builder()
+                .product(product)
+                .quantity(quantity)
+                .build();
     }
 }
