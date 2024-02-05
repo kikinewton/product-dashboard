@@ -13,4 +13,6 @@ import java.util.UUID;
 public interface ProductOrderRepository extends JpaRepository<ProductOrder, UUID>, JpaSpecificationExecutor<ProductOrder> {
     Page<ProductOrder> findByCustomerId(UUID id, Pageable pageable);
 
+    boolean existsByOrderDetailProductId(UUID id);
+
 }

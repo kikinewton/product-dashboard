@@ -7,7 +7,6 @@ import java.util.UUID;
 public record ProductOrderRequest(Set<ProductAndQuantityDto> products,
                                   UUID customerId,
                                   UUID airlineId,
-                                  int quantity,
                                   String description,
                                   String flight,
                                   Date requiredDate) {

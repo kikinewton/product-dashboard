@@ -1,10 +1,12 @@
 package com.bsupply.productdashboard.controller;
 
 import com.bsupply.productdashboard.common.annotation.IntegrationTest;
+import com.bsupply.productdashboard.dto.request.OrderDetailRequest;
 import com.bsupply.productdashboard.dto.request.OrderFulfillmentRequest;
 import com.bsupply.productdashboard.dto.request.ProductAndQuantityDto;
 import com.bsupply.productdashboard.dto.request.ProductOrderRequest;
 import com.bsupply.productdashboard.enums.OrderStatus;
+import com.bsupply.productdashboard.repository.ProductOrderRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -33,6 +36,8 @@ class ProductOrderControllerTest {
 
     @Autowired
     ObjectMapper objectMapper;
+    @Autowired
+    private ProductOrderRepository productOrderRepository;
 
     @Test
     void addProductOrder() throws Exception {
@@ -50,7 +55,7 @@ class ProductOrderControllerTest {
         Date nextWeekDate = Date.from(instant);
 
         ProductOrderRequest productOrderRequest = new ProductOrderRequest(
-                Set.of(product), customerId, airlineId, 10, "Fresh mangoes", "", nextWeekDate);
+                Set.of(product), customerId, airlineId,  "Fresh mangoes", "KL99", nextWeekDate);
         String content = objectMapper.writeValueAsString(productOrderRequest);
 
         mockMvc.perform(post("/api/v1/productOrders")
@@ -64,10 +69,12 @@ class ProductOrderControllerTest {
     public void shouldGetProductOrderById() throws Exception {
 
         String productOrderId = "d51d3f24-8ad7-43b2-87ac-27b1d03c0a1e";
-        mockMvc.perform(get("/api/v1/productOrders/{productOrderId}", productOrderId))
+        mockMvc.perform(get("/api/v1/productOrders/{productOrderId}",
+                        productOrderId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(OrderStatus.PENDING.name()))
-                .andExpect(jsonPath("$.customer.id").value("2cd4dcae-3a41-4194-9e0d-0cef9501a5f9"));
+                .andExpect(jsonPath("$.customer.id")
+                        .value("2cd4dcae-3a41-4194-9e0d-0cef9501a5f9"));
     }
 
     @Test
@@ -76,8 +83,10 @@ class ProductOrderControllerTest {
         String customerId = "2cd4dcae-3a41-4194-9e0d-0cef9501a5f9";
         mockMvc.perform(get("/api/v1/productOrders/customers/{customerId}", customerId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].status").value(OrderStatus.PENDING.name()))
-                .andExpect(jsonPath("$.data[0].customer.id").value("2cd4dcae-3a41-4194-9e0d-0cef9501a5f9"));
+                .andExpect(jsonPath("$.data[0].status")
+                        .value(OrderStatus.PENDING.name()))
+                .andExpect(jsonPath("$.data[0].customer.id")
+                        .value("2cd4dcae-3a41-4194-9e0d-0cef9501a5f9"));
     }
 
     @Test
@@ -89,11 +98,35 @@ class ProductOrderControllerTest {
                 Collections.emptyList());
 
         String content = objectMapper.writeValueAsString(orderFulfillmentRequest);
-        mockMvc.perform(post("/api/v1/productOrders/{productOrderId}/fulfillment", productOrderId)
+        mockMvc.perform(post("/api/v1/productOrders/{productOrderId}/fulfillment",
+                        productOrderId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(content))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message")
-                        .value("Product order with id %s can not be fulfilled".formatted(productOrderId)));
+                        .value("Product order with id %s can not be fulfilled"
+                                .formatted(productOrderId)));
+    }
+
+    @Test
+    public void throwExceptionWhenProductIsNotValidForFulfillment() throws Exception {
+
+        UUID productOrderId = UUID.fromString("d51d3f24-8ad7-43b2-87ac-27b1d03c0a1e");
+        UUID productId = UUID.randomUUID();
+        OrderDetailRequest orderDetailRequest = new OrderDetailRequest(productId, 10);
+        OrderFulfillmentRequest orderFulfillmentRequest = new OrderFulfillmentRequest(
+                productOrderId,
+                List.of(orderDetailRequest));
+
+        String content = objectMapper.writeValueAsString(orderFulfillmentRequest);
+
+        mockMvc.perform(post("/api/v1/productOrders/{productOrderId}/fulfillment",
+                        productOrderId)
+                .content(content)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("Product '%s' not found".formatted(productId)));
+
     }
 }

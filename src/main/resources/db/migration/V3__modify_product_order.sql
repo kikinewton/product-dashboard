@@ -2,8 +2,8 @@ ALTER TABLE product_order DROP COLUMN quantity;
 ALTER TABLE product_order DROP COLUMN product_id;
 
 ALTER TABLE product_order ADD COLUMN status VARCHAR(50) NOT NULL DEFAULT 'PENDING';
-ALTER TABLE product_order ADD COLUMN required_date TIMESTAMPTZ NOT NULL;
-ALTER TABLE product_order ADD COLUMN delivery_date TIMESTAMPTZ     NULL;
+ALTER TABLE product_order ADD COLUMN required_date TIMESTAMPTZ;
+ALTER TABLE product_order ADD COLUMN delivery_date TIMESTAMPTZ;
 ALTER TABLE product_order ADD COLUMN order_fulfillment_date TIMESTAMPTZ;
 
 

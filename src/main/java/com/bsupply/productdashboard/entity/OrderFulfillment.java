@@ -6,6 +6,8 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
@@ -37,6 +39,14 @@ public class OrderFulfillment {
 
     @PositiveOrZero
     private int quantity;
+
+    @ManyToOne
+    @JoinColumn(name = "product_order_id")
+    private ProductOrder productOrder;
+
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private Product product;
 
     @Column(name = "created_by", length = 50)
     @CreatedBy

@@ -9,6 +9,7 @@ import com.bsupply.productdashboard.dto.response.ProductOrderResponse;
 import com.bsupply.productdashboard.entity.Airline;
 import com.bsupply.productdashboard.entity.Customer;
 import com.bsupply.productdashboard.entity.OrderDetail;
+import com.bsupply.productdashboard.entity.OrderFulfillment;
 import com.bsupply.productdashboard.entity.Product;
 import com.bsupply.productdashboard.entity.ProductOrder;
 import com.bsupply.productdashboard.enums.OrderStatus;
@@ -21,6 +22,7 @@ import com.bsupply.productdashboard.factory.ProductOrderResponseFactory;
 import com.bsupply.productdashboard.repository.AirlineRepository;
 import com.bsupply.productdashboard.repository.CustomerRepository;
 import com.bsupply.productdashboard.repository.OrderDetailRepository;
+import com.bsupply.productdashboard.repository.OrderFulfillmentRepository;
 import com.bsupply.productdashboard.repository.ProductOrderRepository;
 import com.bsupply.productdashboard.repository.ProductRepository;
 import com.bsupply.productdashboard.specification.GenericSpecification;
@@ -46,6 +48,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ProductOrderService {
+    private final OrderFulfillmentRepository orderFulfillmentRepository;
 
     private final AirlineRepository airlineRepository;
 
@@ -60,7 +63,8 @@ public class ProductOrderService {
 
     @CacheEvict(
             value = {"productOrder", "productOrderById"},
-            allEntries = true)
+            allEntries = true
+    )
     @Transactional
     public void addProductOrder(ProductOrderRequest productOrderRequest) {
 
@@ -87,10 +91,16 @@ public class ProductOrderService {
     public ProductOrderResponse getProductOrderById(UUID productOrderId) {
 
         log.info("Find product order by id {}", productOrderId);
-        ProductOrder productOrder = productOrderRepository.findById(productOrderId)
-                .orElseThrow(() -> new ProductOrderNotFoundException(productOrderId.toString()));
+        ProductOrder productOrder = getProductOrder(productOrderId);
 
         return ProductOrderResponseFactory.getProductOrderResponse(productOrder);
+    }
+
+    @Cacheable
+    private ProductOrder getProductOrder(UUID productOrderId) {
+        ProductOrder productOrder = productOrderRepository.findById(productOrderId)
+                .orElseThrow(() -> new ProductOrderNotFoundException(productOrderId.toString()));
+        return productOrder;
     }
 
     @Cacheable(value = "productOrders")
@@ -181,24 +191,38 @@ public class ProductOrderService {
             allEntries = true)
     @Transactional
     public void orderFulfillment(UUID productOrderId, OrderFulfillmentRequest orderFulfillmentRequest) {
-
-        log.info("Order fulfillment for id: {}", productOrderId);
+        log.info("Fulfillment of order with id: {}", productOrderId);
         checkOrderFulfillmentStatus(productOrderId);
 
-        List<OrderDetail> orderDetails = orderFulfillmentRequest.orderDetails()
+        // Retrieve the product order
+        ProductOrder productOrder = getProductOrder(productOrderId);
+
+        // Create and set order fulfillments
+        List<OrderFulfillment> orderFulfillments = orderFulfillmentRequest.orderDetails()
                 .stream()
-                .map(o -> createOrderFulfillment(o))
+                .map(orderDetail -> {
+                    Product product = productRepository.findById(orderDetail.productId())
+                            .orElseThrow(() -> new ProductNotFoundException(orderDetail.productId().toString()));
+
+                    OrderFulfillment orderFulfillment = new OrderFulfillment();
+                    orderFulfillment.setProductOrder(productOrder);
+                    orderFulfillment.setProduct(product);
+                    orderFulfillment.setQuantity(orderDetail.quantity());
+                    return orderFulfillment;
+                })
                 .collect(Collectors.toList());
 
-        orderDetailRepository.saveAll(orderDetails);
+        // Save all order fulfillments
+        orderFulfillmentRepository.saveAll(orderFulfillments);
+
+        log.info("Added order details for order with id: {}", productOrderId);
     }
+
 
     private void checkOrderFulfillmentStatus(UUID productOrderId) {
 
         log.info("Check status of order");
-        ProductOrder productOrder = productOrderRepository
-                .findById(productOrderId)
-                .orElseThrow(() -> new ProductOrderNotFoundException(productOrderId.toString()));
+        ProductOrder productOrder = getProductOrder(productOrderId);
 
         if (productOrder.getOrderDetail().isEmpty() || productOrder.getStatus() != OrderStatus.PENDING) {
             throw new ProductOrderFulfillmentException(productOrderId.toString());
