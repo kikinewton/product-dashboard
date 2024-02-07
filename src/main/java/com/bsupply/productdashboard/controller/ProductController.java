@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -45,10 +46,18 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<PageResponseDto<ProductResponse>> getAllProducts(
             @RequestParam(defaultValue = "0") int pageNo,
-            @RequestParam(defaultValue = "200") int pageSize
+            @RequestParam(defaultValue = "200") int pageSize,
+            @RequestParam(required = false) Optional<String> productName
     ) {
 
         Pageable pageable = PageRequest.of(pageNo, pageSize);
+
+        if (productName.isPresent() && !productName.get().isBlank()) {
+            PageResponseDto<ProductResponse> products = productService
+                    .getByNameLike(productName.get(), pageable);
+            return ResponseEntity.ok(products);
+        }
+
         PageResponseDto<ProductResponse> products = productService.getAllProducts(pageable);
         return ResponseEntity.ok(products);
     }

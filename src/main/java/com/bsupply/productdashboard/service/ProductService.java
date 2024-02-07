@@ -13,6 +13,9 @@ import com.bsupply.productdashboard.exception.ProductNotFoundException;
 import com.bsupply.productdashboard.factory.ProductResponseFactory;
 import com.bsupply.productdashboard.repository.ProductCategoryRepository;
 import com.bsupply.productdashboard.repository.ProductRepository;
+import com.bsupply.productdashboard.specification.GenericSpecification;
+import com.bsupply.productdashboard.specification.SearchCriteria;
+import com.bsupply.productdashboard.specification.SearchOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -35,7 +38,7 @@ public class ProductService {
 
     @Transactional
     @CacheEvict(
-            value = {"products", "productById"},
+            value = {"products", "productById", "productsByName"},
             allEntries = true)
     public void addProduct(ProductRequest productRequest) {
 
@@ -99,7 +102,7 @@ public class ProductService {
 
     @Transactional
     @CacheEvict(
-            value = {"products", "productById"},
+            value = {"products", "productById", "productsByName"},
             allEntries = true)
     public ProductResponse updateProduct(UUID productId, ProductRequest productRequest) {
 
@@ -122,7 +125,7 @@ public class ProductService {
     }
 
     @CacheEvict(
-            value = {"products", "productById"},
+            value = {"products", "productById", "productsByName"},
             allEntries = true)
     public void deleteProduct(UUID productId) {
 
@@ -135,5 +138,17 @@ public class ProductService {
                 .orElseThrow(() ->
                         new ProductCategoryNotFoundException(productRequest.productCategoryId().toString()));
 
+    }
+
+    @Cacheable(value = "productsByName")
+    public PageResponseDto<ProductResponse> getByNameLike(
+            String productName,
+            Pageable pageable) {
+
+        GenericSpecification<Product> productSpecification = new GenericSpecification<>();
+        productSpecification.add(new SearchCriteria("name", productName, SearchOperation.LIKE));
+        Page<ProductResponse> productResponse = productRepository.findAll(productSpecification, pageable)
+                .map(p -> ProductResponseFactory.getProductResponse(p));
+        return PageResponseDto.wrapResponse(productResponse);
     }
 }

@@ -60,7 +60,19 @@ class ProductControllerTest {
         mockMvc.perform(get("/api/v1/products"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data", hasSize(1)));
+                .andExpect(jsonPath("$.data", hasSize(2)));
+    }
+
+
+    @Test
+    public void shouldGetProductsWithNameLike() throws Exception {
+
+        mockMvc.perform(get("/api/v1/products")
+                        .param("productName", "mango"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data", hasSize(2)))
+                .andExpect(jsonPath("$.data[0].name").value("Mango cuts"));
     }
 
     @Test
