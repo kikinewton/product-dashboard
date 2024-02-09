@@ -145,8 +145,9 @@ public class ProductService {
             String productName,
             Pageable pageable) {
 
+        log.info("Find product with name like {}", productName);
         GenericSpecification<Product> productSpecification = new GenericSpecification<>();
-        productSpecification.add(new SearchCriteria("name", productName, SearchOperation.LIKE));
+        productSpecification.add(new SearchCriteria("name", productName, SearchOperation.MATCH));
         Page<ProductResponse> productResponse = productRepository.findAll(productSpecification, pageable)
                 .map(p -> ProductResponseFactory.getProductResponse(p));
         return PageResponseDto.wrapResponse(productResponse);
