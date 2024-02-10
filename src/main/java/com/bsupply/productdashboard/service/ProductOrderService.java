@@ -1,7 +1,6 @@
 package com.bsupply.productdashboard.service;
 
 import com.bsupply.productdashboard.dto.PageResponseDto;
-import com.bsupply.productdashboard.dto.request.OrderDetailRequest;
 import com.bsupply.productdashboard.dto.request.OrderFulfillmentRequest;
 import com.bsupply.productdashboard.dto.request.ProductAndQuantityDto;
 import com.bsupply.productdashboard.dto.request.ProductOrderRequest;
@@ -16,8 +15,8 @@ import com.bsupply.productdashboard.enums.OrderStatus;
 import com.bsupply.productdashboard.exception.AirlineNotFoundException;
 import com.bsupply.productdashboard.exception.CustomerNotFoundException;
 import com.bsupply.productdashboard.exception.ProductNotFoundException;
-import com.bsupply.productdashboard.exception.ProductOrderNotFoundException;
 import com.bsupply.productdashboard.exception.ProductOrderFulfillmentException;
+import com.bsupply.productdashboard.exception.ProductOrderNotFoundException;
 import com.bsupply.productdashboard.factory.ProductOrderResponseFactory;
 import com.bsupply.productdashboard.repository.AirlineRepository;
 import com.bsupply.productdashboard.repository.CustomerRepository;
@@ -48,7 +47,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ProductOrderService {
-    private final OrderFulfillmentRepository orderFulfillmentRepository;
 
     private final AirlineRepository airlineRepository;
 
@@ -60,9 +58,11 @@ public class ProductOrderService {
 
     private final OrderDetailRepository orderDetailRepository;
 
+    private final OrderFulfillmentRepository orderFulfillmentRepository;
+
 
     @CacheEvict(
-            value = {"productOrder", "productOrderById"},
+            value = {"productOrder", "productOrderById", "fulfillments"},
             allEntries = true
     )
     @Transactional
@@ -93,7 +93,15 @@ public class ProductOrderService {
         log.info("Find product order by id {}", productOrderId);
         ProductOrder productOrder = getProductOrder(productOrderId);
 
-        return ProductOrderResponseFactory.getProductOrderResponse(productOrder);
+        log.info("Find associated fulfillment to order: {}", productOrderId);
+        List<OrderFulfillment> fulfillment = getFulfillmentForOrder(productOrderId);
+
+        return ProductOrderResponseFactory.getProductOrderResponse(productOrder, fulfillment);
+    }
+
+    @Cacheable(value = "fulfillments")
+    private List<OrderFulfillment> getFulfillmentForOrder(UUID productOrderId) {
+        return orderFulfillmentRepository.findByProductOrderId(productOrderId);
     }
 
     @Cacheable
@@ -108,7 +116,10 @@ public class ProductOrderService {
 
         log.info("Fetch all product orders");
         Page<ProductOrderResponse> result = productOrderRepository.findAll(pageable)
-                .map(p -> ProductOrderResponseFactory.getProductOrderResponse(p));
+                .map(p -> {
+                    List<OrderFulfillment> fulfillmentForOrder = getFulfillmentForOrder(p.getId());
+                    return ProductOrderResponseFactory.getProductOrderResponse(p, fulfillmentForOrder);
+                });
         return PageResponseDto.wrapResponse(result);
     }
 
@@ -121,7 +132,10 @@ public class ProductOrderService {
         productOrderSpecification.add(new SearchCriteria("createdAt", startPeriod, SearchOperation.GREATER_THAN_EQUAL));
         productOrderSpecification.add(new SearchCriteria("createdAt", endPeriod, SearchOperation.LESS_THAN_EQUAL));
         Page<ProductOrderResponse> productOrders = productOrderRepository.findAll(productOrderSpecification, pageable)
-                .map(p -> ProductOrderResponseFactory.getProductOrderResponse(p));
+                .map(p -> {
+                    List<OrderFulfillment> fulfillmentForOrder = getFulfillmentForOrder(p.getId());
+                    return ProductOrderResponseFactory.getProductOrderResponse(p, fulfillmentForOrder);
+                });
         return PageResponseDto.wrapResponse(productOrders);
     }
 
@@ -133,7 +147,10 @@ public class ProductOrderService {
         log.info("Fetch all product orders by customer {}", customerId);
         Page<ProductOrderResponse> result = productOrderRepository
                 .findByCustomerId(customerId, pageable)
-                .map(p -> ProductOrderResponseFactory.getProductOrderResponse(p));
+                .map(p -> {
+                    List<OrderFulfillment> fulfillmentForOrder = getFulfillmentForOrder(p.getId());
+                    return ProductOrderResponseFactory.getProductOrderResponse(p, fulfillmentForOrder);
+                });
 
         return PageResponseDto.wrapResponse(result);
     }
@@ -173,21 +190,8 @@ public class ProductOrderService {
                 .build();
     }
 
-
-    public OrderDetail createOrderFulfillment(OrderDetailRequest orderFulfillmentRequest) {
-
-        UUID productId = orderFulfillmentRequest.productId();
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ProductNotFoundException(productId.toString()));
-
-        return OrderDetail.builder()
-                .quantity(orderFulfillmentRequest.quantity())
-                .product(product)
-                .build();
-    }
-
     @CacheEvict(
-            value = {"productOrder", "productOrderById"},
+            value = {"productOrder", "productOrderById", "fulfillments"},
             allEntries = true)
     @Transactional
     public void orderFulfillment(UUID productOrderId, OrderFulfillmentRequest orderFulfillmentRequest) {
