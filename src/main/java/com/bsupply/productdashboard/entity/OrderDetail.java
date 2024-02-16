@@ -14,6 +14,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -41,4 +43,14 @@ public class OrderDetail {
 
     @CreationTimestamp
     private Instant createdAt;
+
+    @Column(name = "created_by", length = 50)
+    @CreatedBy
+    private String createdBy;
+
+    private Instant modifiedAt;
+
+    @Column(length = 50)
+    @LastModifiedBy
+    private String modifiedBy;
 }

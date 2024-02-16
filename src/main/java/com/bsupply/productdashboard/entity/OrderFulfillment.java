@@ -17,6 +17,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
@@ -59,4 +60,9 @@ public class OrderFulfillment {
     @CreationTimestamp
     private Instant createdAt;
 
+    private Instant modifiedAt;
+
+    @Column(length = 50)
+    @LastModifiedBy
+    private String modifiedBy;
 }

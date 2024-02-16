@@ -19,3 +19,14 @@ insert into product_order
 (id, airline_id, customer_id, description, flight, required_date)
 values ('d51d3f24-8ad7-43b2-87ac-27b1d03c0a1e','094551bd-881a-474a-b652-44a4cddbf3fb','2cd4dcae-3a41-4194-9e0d-0cef9501a5f9',
         'Product order A', 'M0DD2', '2024-03-03T22:00:00Z');
+
+insert into order_detail (product_id,quantity,id)
+values ('e9a4b64c-71ab-451a-8aed-b2598b9ff5f1', 10, '0f7231c8-e551-4278-96be-b9292c1ea130');
+
+insert into product_order
+(id, airline_id, customer_id, description, flight, required_date)
+values ('aebc1f59-3248-421f-b0c4-c26fb5d5f507','094551bd-881a-474a-b652-44a4cddbf3fb','2cd4dcae-3a41-4194-9e0d-0cef9501a5f9',
+        'Order mango cuts', 'GR4FF', '2024-03-05T22:00:00Z');
+
+insert into product_order_order_detail (product_order_id,order_detail_id)
+values ('aebc1f59-3248-421f-b0c4-c26fb5d5f507', '0f7231c8-e551-4278-96be-b9292c1ea130');

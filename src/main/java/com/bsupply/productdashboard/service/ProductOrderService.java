@@ -1,6 +1,7 @@
 package com.bsupply.productdashboard.service;
 
 import com.bsupply.productdashboard.dto.PageResponseDto;
+import com.bsupply.productdashboard.dto.request.OrderDetailRequest;
 import com.bsupply.productdashboard.dto.request.OrderFulfillmentRequest;
 import com.bsupply.productdashboard.dto.request.ProductAndQuantityDto;
 import com.bsupply.productdashboard.dto.request.ProductOrderRequest;
@@ -39,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -62,7 +64,7 @@ public class ProductOrderService {
 
 
     @CacheEvict(
-            value = {"productOrder", "productOrderById", "fulfillments"},
+            value = {"productOrders", "productOrderById", "fulfillments", "productOrdersByCustomerId"},
             allEntries = true
     )
     @Transactional
@@ -112,10 +114,12 @@ public class ProductOrderService {
     }
 
     @Cacheable(value = "productOrders")
-    public PageResponseDto<ProductOrderResponse> getProductOrders(Pageable pageable) {
+    public PageResponseDto<ProductOrderResponse> getPendingProductOrders(Pageable pageable) {
 
         log.info("Fetch all product orders");
-        Page<ProductOrderResponse> result = productOrderRepository.findAll(pageable)
+        GenericSpecification<ProductOrder> productOrderSpecification = new GenericSpecification<>();
+        productOrderSpecification.add(new SearchCriteria("status", OrderStatus.PENDING.name(), SearchOperation.EQUAL));
+        Page<ProductOrderResponse> result = productOrderRepository.findAll(productOrderSpecification, pageable)
                 .map(p -> {
                     List<OrderFulfillment> fulfillmentForOrder = getFulfillmentForOrder(p.getId());
                     return ProductOrderResponseFactory.getProductOrderResponse(p, fulfillmentForOrder);
@@ -191,7 +195,7 @@ public class ProductOrderService {
     }
 
     @CacheEvict(
-            value = {"productOrder", "productOrderById", "fulfillments"},
+            value = {"productOrders", "productOrderById", "fulfillments", "productOrdersByCustomerId"},
             allEntries = true)
     @Transactional
     public void orderFulfillment(UUID productOrderId, OrderFulfillmentRequest orderFulfillmentRequest) {
@@ -216,10 +220,23 @@ public class ProductOrderService {
                 })
                 .collect(Collectors.toList());
 
+        orderFulfillments.stream().map(o -> orderFulfillmentRepository
+                .getFulfillmentStatusByOrderAndProductId(productOrderId, o.getProduct().getId()));
+
         // Save all order fulfillments
         orderFulfillmentRepository.saveAll(orderFulfillments);
+        processOrderStatus(productOrderId, productOrder);
+    }
 
-        log.info("Added order details for order with id: {}", productOrderId);
+    private void processOrderStatus(UUID productOrderId, ProductOrder productOrder) {
+
+        log.info("Check if status of order: {} is COMPLETED", productOrderId);
+        OrderStatus status = orderFulfillmentRepository.findOrderStatusByOrderId(productOrderId);
+        if (OrderStatus.COMPLETED == status) {
+            productOrder.setStatus(status);
+            productOrderRepository.save(productOrder);
+            log.info("Order {} is COMPLETED", productOrderId);
+        }
     }
 
 
@@ -233,4 +250,62 @@ public class ProductOrderService {
         }
     }
 
+    @CacheEvict(
+            value = {"productOrders", "productOrderById", "fulfillments", "productOrdersByCustomerId"},
+            allEntries = true
+    )
+    @Transactional
+    public void updateOrder(UUID productOrderId, ProductOrderRequest productOrderRequest) {
+
+        Airline airline = airlineRepository.findById(productOrderRequest.airlineId())
+                .orElseThrow(() -> new AirlineNotFoundException(productOrderRequest.airlineId().toString()));
+
+        Customer customer = customerRepository.findById(productOrderRequest.customerId())
+                .orElseThrow(() -> new CustomerNotFoundException(productOrderRequest.customerId().toString()));
+
+        log.info("Update order with id {}", productOrderId);
+        ProductOrder productOrder = getProductOrder(productOrderId);
+        productOrder.setAirline(airline);
+        productOrder.setCustomer(customer);
+        productOrder.setRequiredDate(productOrderRequest.requiredDate().toInstant());
+        productOrder.setFlight(productOrderRequest.flight());
+        productOrder.setDescription(productOrderRequest.description());
+        productOrderRepository.save(productOrder);
+    }
+
+
+    @CacheEvict(
+            value = {"productOrders", "productOrderById", "fulfillments", "productOrdersByCustomerId"},
+            allEntries = true
+    )
+    @Transactional
+    public void updateOrderDetailById(UUID orderDetailId, OrderDetailRequest orderDetailRequest) {
+
+        log.info("Update order detail with id {}", orderDetailId);
+        Optional<OrderDetail> detailOptional = orderDetailRepository.findById(orderDetailId);
+        detailOptional.ifPresent(od -> {
+
+            log.info("Change quantity from {} to {}", od.getQuantity(), orderDetailRequest.quantity());
+            od.setQuantity(orderDetailRequest.quantity());
+            orderDetailRepository.save(od);
+        });
+    }
+
+
+    @CacheEvict(
+            value = {"productOrders", "productOrderById", "fulfillments", "productOrdersByCustomerId"},
+            allEntries = true
+    )
+    @Transactional
+    public void updateFulfillmentById(UUID orderFulfillmentId, OrderDetailRequest orderDetailRequest) {
+
+        log.info("Update fulfillment with id {}", orderFulfillmentId);
+        Optional<OrderFulfillment> fulfillmentOptional = orderFulfillmentRepository.findById(orderFulfillmentId);
+        fulfillmentOptional.ifPresent(f -> {
+
+            log.info("Change quantity from {} to {}", f.getQuantity(), orderDetailRequest.quantity());
+            f.setQuantity(orderDetailRequest.quantity());
+            orderFulfillmentRepository.save(f);
+        });
+    }
 }
