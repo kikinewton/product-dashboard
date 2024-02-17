@@ -30,3 +30,7 @@ values ('aebc1f59-3248-421f-b0c4-c26fb5d5f507','094551bd-881a-474a-b652-44a4cddb
 
 insert into product_order_order_detail (product_order_id,order_detail_id)
 values ('aebc1f59-3248-421f-b0c4-c26fb5d5f507', '0f7231c8-e551-4278-96be-b9292c1ea130');
+
+insert into order_fulfillment
+(created_by,product_id,product_order_id,quantity,id)
+values ('test@mail.com', 'e9a4b64c-71ab-451a-8aed-b2598b9ff5f1', 'aebc1f59-3248-421f-b0c4-c26fb5d5f507', 32, '5434746f-53bc-4db5-af8d-336ee0f4ff0c');

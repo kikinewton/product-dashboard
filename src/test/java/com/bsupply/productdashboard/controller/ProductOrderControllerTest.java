@@ -201,7 +201,7 @@ class ProductOrderControllerTest {
 
         UUID productId = UUID.fromString("e9a4b64c-71ab-451a-8aed-b2598b9ff5f1");
         UUID productOrderId = UUID.fromString("aebc1f59-3248-421f-b0c4-c26fb5d5f507");
-        UUID orderFulfillmentId = UUID.fromString("0f7231c8-e551-4278-96be-b9292c1ea130");
+        UUID orderFulfillmentId = UUID.fromString("5434746f-53bc-4db5-af8d-336ee0f4ff0c");
         OrderDetailRequest orderDetailRequest = new OrderDetailRequest(productId, 102);
 
         String content = objectMapper.writeValueAsString(orderDetailRequest);
@@ -210,6 +210,6 @@ class ProductOrderControllerTest {
                         productOrderId, orderFulfillmentId)
                         .content(content)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk());
     }
 }
