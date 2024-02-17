@@ -116,7 +116,7 @@ public class ProductOrderController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PutMapping("/{productOrderId}/orderDetails/{orderFulfillmentId}")
+    @PutMapping("/{productOrderId}/orderFulfillments/{orderFulfillmentId}")
     public ResponseEntity<ProductOrderResponse> updateOrderFulfillment(
             @PathVariable UUID productOrderId,
             @PathVariable UUID orderFulfillmentId,

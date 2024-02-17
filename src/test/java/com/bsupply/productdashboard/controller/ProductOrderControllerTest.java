@@ -66,7 +66,6 @@ class ProductOrderControllerTest {
                         .content(content)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
-
     }
 
     @Test
@@ -178,5 +177,39 @@ class ProductOrderControllerTest {
         Optional<ProductOrder> productOrder = productOrderRepository.findById(productOrderId);
         Assertions.assertTrue(productOrder.isPresent()
                               && OrderStatus.COMPLETED.equals(productOrder.get().getStatus()));
+    }
+
+    @Test
+    void updateOrderDetail() throws Exception {
+
+        UUID productId = UUID.fromString("e9a4b64c-71ab-451a-8aed-b2598b9ff5f1");
+        UUID productOrderId = UUID.fromString("aebc1f59-3248-421f-b0c4-c26fb5d5f507");
+        UUID orderDetailId = UUID.fromString("0f7231c8-e551-4278-96be-b9292c1ea130");
+        OrderDetailRequest orderDetailRequest = new OrderDetailRequest(productId, 101);
+
+        String content = objectMapper.writeValueAsString(orderDetailRequest);
+
+        mockMvc.perform(put("/api/v1/productOrders/{productOrderId}/orderDetails/{orderDetailId}",
+                        productOrderId, orderDetailId)
+                        .content(content)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void updateOrderFulfillment() throws Exception {
+
+        UUID productId = UUID.fromString("e9a4b64c-71ab-451a-8aed-b2598b9ff5f1");
+        UUID productOrderId = UUID.fromString("aebc1f59-3248-421f-b0c4-c26fb5d5f507");
+        UUID orderFulfillmentId = UUID.fromString("0f7231c8-e551-4278-96be-b9292c1ea130");
+        OrderDetailRequest orderDetailRequest = new OrderDetailRequest(productId, 102);
+
+        String content = objectMapper.writeValueAsString(orderDetailRequest);
+
+        mockMvc.perform(put("/api/v1/productOrders/{productOrderId}/orderFulfillments/{orderFulfillmentId}",
+                        productOrderId, orderFulfillmentId)
+                        .content(content)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
 }

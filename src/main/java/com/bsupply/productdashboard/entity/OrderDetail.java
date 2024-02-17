@@ -50,7 +50,7 @@ public class OrderDetail {
 
     private Instant modifiedAt;
 
-    @Column(length = 50)
+    @Column(length = 80)
     @LastModifiedBy
     private String modifiedBy;
 }
