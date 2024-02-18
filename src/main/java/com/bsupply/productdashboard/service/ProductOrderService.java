@@ -37,6 +37,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -85,7 +86,12 @@ public class ProductOrderService {
         productOrder.setAirline(airline);
         productOrder.setRequiredDate(productOrderRequest.requiredDate().toInstant());
         productOrder.setFlight(productOrderRequest.flight());
-        productOrder.setDescription(productOrderRequest.description());
+
+        String description = productOrderRequest.description().isBlank()
+                ? "Order by %s on %s".formatted(customer.getName(), LocalDate.now().toString())
+                : productOrder.getDescription();
+
+        productOrder.setDescription(description);
         productOrderRepository.save(productOrder);
     }
 
