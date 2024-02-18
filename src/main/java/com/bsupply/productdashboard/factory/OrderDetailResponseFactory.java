@@ -13,6 +13,7 @@ public class OrderDetailResponseFactory {
 
         ProductResponse productResponse = ProductResponseFactory.getProductResponse(orderDetail.getProduct());
         return new OrderDetailResponse(
+                orderDetail.getId(),
                 productResponse,
                 orderDetail.getQuantity(),
                 orderDetail.getCreatedAt());

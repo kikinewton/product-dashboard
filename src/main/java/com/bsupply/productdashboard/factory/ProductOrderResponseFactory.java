@@ -39,6 +39,7 @@ public class ProductOrderResponseFactory {
                 productOrder.getDescription(),
                 productOrder.getFlight(),
                 productOrder.getCreatedAt(),
+                productOrder.getRequiredDate(),
                 customerResponse,
                 airlineResponse,
                 productOrder.getStatus(),
