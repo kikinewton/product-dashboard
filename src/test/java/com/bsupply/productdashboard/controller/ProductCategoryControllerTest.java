@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -26,6 +27,7 @@ class ProductCategoryControllerTest {
     ObjectMapper objectMapper;
 
     @Test
+    @WithMockUser(username = "chulk@mail.com")
     void shouldAddProductCategory() throws Exception {
 
         ProductCategoryRequest productCategoryRequest = new ProductCategoryRequest("Fresh fruits", "Fruits");
@@ -37,6 +39,7 @@ class ProductCategoryControllerTest {
     }
 
     @Test
+    @WithMockUser
     void shouldFetchProductCategories() throws Exception {
 
         mockMvc.perform(get("/api/v1/productCategories")
@@ -47,6 +50,7 @@ class ProductCategoryControllerTest {
     }
 
     @Test
+    @WithMockUser
     void shouldGetProductCategoryById() throws Exception {
 
         String productCategoryId = "473d8a91-3a54-44d9-8454-71a749d5d89f";
@@ -58,6 +62,7 @@ class ProductCategoryControllerTest {
     }
 
     @Test
+    @WithMockUser
     void shouldThrowErrorWhenProductCategoryNameIsBlank() throws Exception {
 
         String productCategoryId = "473d8a91-3a54-44d9-8454-71a749d5d89f";
@@ -74,6 +79,7 @@ class ProductCategoryControllerTest {
     }
 
     @Test
+    @WithMockUser
     void shouldUpdateProductCategory() throws Exception {
 
         String productCategoryId = "473d8a91-3a54-44d9-8454-71a749d5d89f";
@@ -89,6 +95,7 @@ class ProductCategoryControllerTest {
     }
 
     @Test
+    @WithMockUser
     void shouldDeleteProductCategory() throws Exception {
 
         String productCategoryId = "473d8a91-3a54-44d9-8454-71a749d5d89f";

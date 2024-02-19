@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
@@ -29,6 +30,7 @@ class ProductControllerTest {
     ObjectMapper objectMapper;
 
     @Test
+    @WithMockUser
     public void shouldAddProduct() throws Exception {
 
         UUID productCategoryId = UUID.fromString("473d8a91-3a54-44d9-8454-71a749d5d89f");
@@ -44,6 +46,7 @@ class ProductControllerTest {
     }
 
     @Test
+    @WithMockUser
     public void shouldGetProductById() throws Exception {
 
         String productId = "e9a4b64c-71ab-451a-8aed-b2598b9ff5f1";
@@ -55,6 +58,7 @@ class ProductControllerTest {
 
 
     @Test
+    @WithMockUser
     public void shouldGetAllProducts() throws Exception {
 
         mockMvc.perform(get("/api/v1/products"))
@@ -65,6 +69,7 @@ class ProductControllerTest {
 
 
     @Test
+    @WithMockUser
     public void shouldGetProductsWithNameLike() throws Exception {
 
         mockMvc.perform(get("/api/v1/products")
@@ -76,6 +81,7 @@ class ProductControllerTest {
     }
 
     @Test
+    @WithMockUser
     public void shouldDeleteProduct() throws Exception {
 
         String productId = "e9a4b64c-71ab-451a-8aed-b2598b9ff5f1";
@@ -84,6 +90,7 @@ class ProductControllerTest {
     }
 
     @Test
+    @WithMockUser
     public void shouldUpdateProduct() throws Exception {
 
         String productId = "e9a4b64c-71ab-451a-8aed-b2598b9ff5f1";

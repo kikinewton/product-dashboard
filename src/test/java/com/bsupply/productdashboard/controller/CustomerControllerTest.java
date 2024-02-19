@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -26,6 +27,7 @@ class CustomerControllerTest {
     ObjectMapper objectMapper;
 
     @Test
+    @WithMockUser
     public void shouldAddCustomer() throws Exception {
 
         CustomerRequest request = new CustomerRequest("M&S", "Food store", "Leeds", "support@sainsbury.com", "00000");
@@ -37,6 +39,7 @@ class CustomerControllerTest {
     }
 
     @Test
+    @WithMockUser
     public void givenCustomerIdShouldReturnCustomer() throws Exception {
 
         String customerId = "2cd4dcae-3a41-4194-9e0d-0cef9501a5f9";
@@ -46,6 +49,7 @@ class CustomerControllerTest {
     }
 
     @Test
+    @WithMockUser
     public void shouldFetchAllCustomers() throws Exception {
 
         mockMvc.perform(get("/api/v1/customers"))
@@ -55,6 +59,7 @@ class CustomerControllerTest {
     }
 
     @Test
+    @WithMockUser
     public void shouldUpdateCustomer() throws Exception {
 
         String customerId = "2cd4dcae-3a41-4194-9e0d-0cef9501a5f9";
@@ -69,6 +74,7 @@ class CustomerControllerTest {
     }
 
     @Test
+    @WithMockUser
     public void shouldDeleteCustomer() throws Exception {
 
         String customerId = "2cd4dcae-3a41-4194-9e0d-0cef9501a5f9";

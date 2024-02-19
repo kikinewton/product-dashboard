@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -26,6 +27,7 @@ class AirlineControllerTest {
     ObjectMapper objectMapper;
 
     @Test
+    @WithMockUser
     void shouldCreateAirline() throws Exception {
 
         AirlineRequest airlineRequest = new AirlineRequest("BTA", "");
@@ -37,6 +39,7 @@ class AirlineControllerTest {
     }
 
     @Test
+    @WithMockUser
     void shouldThrowAnExceptionWhenCreatingAirlineWithDuplicateName() throws Exception {
 
         AirlineRequest airlineRequest = new AirlineRequest("KLM", "");
@@ -50,6 +53,7 @@ class AirlineControllerTest {
     }
 
     @Test
+    @WithMockUser
     void shouldFetchAllAirlines() throws Exception {
 
         mockMvc.perform(get("/api/v1/airlines")
@@ -60,6 +64,7 @@ class AirlineControllerTest {
     }
 
     @Test
+    @WithMockUser
     void shouldFetchAirlineById() throws Exception {
 
         String airlineId = "4ae0dea8-78c8-4595-b24d-65e944067a6a";
@@ -70,6 +75,7 @@ class AirlineControllerTest {
     }
 
     @Test
+    @WithMockUser
     void shouldUpdateAirline() throws Exception {
 
         String airlineId = "4ae0dea8-78c8-4595-b24d-65e944067a6a";
@@ -84,6 +90,7 @@ class AirlineControllerTest {
     }
 
     @Test
+    @WithMockUser
     void shouldDeleteAirline() throws Exception {
 
         String airlineId = "4ae0dea8-78c8-4595-b24d-65e944067a6a";

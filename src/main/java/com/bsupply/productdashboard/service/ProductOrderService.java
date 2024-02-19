@@ -89,7 +89,7 @@ public class ProductOrderService {
 
         String description = productOrderRequest.description().isBlank()
                 ? "Order by %s on %s".formatted(customer.getName(), LocalDate.now().toString())
-                : productOrder.getDescription();
+                : productOrderRequest.description();
 
         productOrder.setDescription(description);
         productOrderRepository.save(productOrder);
@@ -226,8 +226,8 @@ public class ProductOrderService {
                 })
                 .collect(Collectors.toList());
 
-        orderFulfillments.stream().map(o -> orderFulfillmentRepository
-                .getFulfillmentStatusByOrderAndProductId(productOrderId, o.getProduct().getId()));
+//        orderFulfillments.stream().map(o -> orderFulfillmentRepository
+//                .getFulfillmentStatusByOrderAndProductId(productOrderId, o.getProduct().getId()));
 
         // Save all order fulfillments
         orderFulfillmentRepository.saveAll(orderFulfillments);
@@ -238,6 +238,7 @@ public class ProductOrderService {
 
         log.info("Check if status of order: {} is COMPLETED", productOrderId);
         OrderStatus status = orderFulfillmentRepository.findOrderStatusByOrderId(productOrderId);
+        log.info("Order status is {}", status);
         if (OrderStatus.COMPLETED == status) {
             productOrder.setStatus(status);
             productOrderRepository.save(productOrder);
