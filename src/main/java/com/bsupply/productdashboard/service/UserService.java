@@ -32,7 +32,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    @CacheEvict(value = {"users", "userById"})
+    @CacheEvict(value = {"users", "userById", "userByEmail"})
     public void updateUser(UUID userId, UpdateUserRequest updateUserRequest) {
 
         log.info("Update user with id {}", userId);
@@ -70,5 +70,14 @@ public class UserService {
 
         log.info("Fetch user with id {}", userId);
         return UserResponseFactory.getUserResponse(getUser(userId));
+    }
+
+    @Cacheable(value = "userByEmail")
+    public UserResponse getUserByEmail(String email) {
+
+        log.info("Fetch user by email {}", email);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException(email));
+        return UserResponseFactory.getUserResponse(user);
     }
 }
