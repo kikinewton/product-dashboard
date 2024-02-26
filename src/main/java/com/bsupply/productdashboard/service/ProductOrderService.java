@@ -5,6 +5,7 @@ import com.bsupply.productdashboard.dto.request.OrderDetailRequest;
 import com.bsupply.productdashboard.dto.request.OrderFulfillmentRequest;
 import com.bsupply.productdashboard.dto.request.ProductAndQuantityDto;
 import com.bsupply.productdashboard.dto.request.ProductOrderRequest;
+import com.bsupply.productdashboard.dto.request.UpdateQuantityRequest;
 import com.bsupply.productdashboard.dto.response.ProductOrderResponse;
 import com.bsupply.productdashboard.entity.Airline;
 import com.bsupply.productdashboard.entity.Customer;
@@ -304,14 +305,14 @@ public class ProductOrderService {
             allEntries = true
     )
     @Transactional
-    public void updateFulfillmentById(UUID orderFulfillmentId, OrderDetailRequest orderDetailRequest) {
+    public void updateFulfillmentById(UUID orderFulfillmentId, UpdateQuantityRequest updateQuantityRequest) {
 
         log.info("Update fulfillment with id {}", orderFulfillmentId);
         Optional<OrderFulfillment> fulfillmentOptional = orderFulfillmentRepository.findById(orderFulfillmentId);
         fulfillmentOptional.ifPresent(f -> {
 
-            log.info("Change quantity from {} to {}", f.getQuantity(), orderDetailRequest.quantity());
-            f.setQuantity(orderDetailRequest.quantity());
+            log.info("Change quantity from {} to {}", f.getQuantity(), updateQuantityRequest.quantity());
+            f.setQuantity(updateQuantityRequest.quantity());
             orderFulfillmentRepository.save(f);
         });
     }

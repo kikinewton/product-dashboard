@@ -4,6 +4,7 @@ import com.bsupply.productdashboard.dto.PageResponseDto;
 import com.bsupply.productdashboard.dto.request.OrderDetailRequest;
 import com.bsupply.productdashboard.dto.request.OrderFulfillmentRequest;
 import com.bsupply.productdashboard.dto.request.ProductOrderRequest;
+import com.bsupply.productdashboard.dto.request.UpdateQuantityRequest;
 import com.bsupply.productdashboard.dto.response.ProductOrderResponse;
 import com.bsupply.productdashboard.service.ProductOrderService;
 import jakarta.validation.Valid;
@@ -120,10 +121,10 @@ public class ProductOrderController {
     public ResponseEntity<ProductOrderResponse> updateOrderFulfillment(
             @PathVariable UUID productOrderId,
             @PathVariable UUID orderFulfillmentId,
-            @RequestBody @Valid OrderDetailRequest orderDetailRequest) {
+            @RequestBody @Valid UpdateQuantityRequest updateQuantityRequest) {
 
         log.info("Update fulfillment of order: {}", productOrderId);
-        productOrderService.updateFulfillmentById(orderFulfillmentId, orderDetailRequest);
+        productOrderService.updateFulfillmentById(orderFulfillmentId, updateQuantityRequest);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
