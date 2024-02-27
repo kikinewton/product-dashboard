@@ -14,6 +14,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.CompletableFuture;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -41,15 +43,20 @@ public class AuthenticationService {
 
     public User authenticate(LoginRequest loginRequest) {
 
-        log.info("User {} attempting login", loginRequest.email());
+        String email = loginRequest.email();
+        log.info("User {} attempting login", email);
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequest.email(),
+                        email,
                         loginRequest.password()));
 
-        return userRepository.findByEmail(loginRequest.email())
+        User user = userRepository.findByEmail(email)
                 .orElseThrow();
 
+        CompletableFuture.runAsync(
+                () -> userRepository.updateLastLogin(email)
+        );
+        return user;
     }
 
     private void checkUserWithEmailExist(String email) {

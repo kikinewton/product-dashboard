@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,6 +42,7 @@ public class UserController {
     }
 
     @PutMapping("/{userId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> updateUser(
             @PathVariable UUID userId,
             @RequestBody UpdateUserRequest updateUserRequest) {
@@ -50,9 +52,17 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
 
         userService.deleteUser(userId);
+        return new ResponseEntity(HttpStatus.OK);
+    }
+    @PutMapping("/{userId}/disable")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Void> disableUser(@PathVariable UUID userId) {
+
+        userService.disableUser(userId);
         return new ResponseEntity(HttpStatus.OK);
     }
 }

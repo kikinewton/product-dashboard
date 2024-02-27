@@ -80,4 +80,15 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException(email));
         return UserResponseFactory.getUserResponse(user);
     }
+
+    @CacheEvict(value = {"users", "userById", "userByEmail"})
+    public void disableUser(UUID userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+
+        log.info("Disable user {}", user.getEmail());
+        user.setEnabled(false);
+        userRepository.save(user);
+    }
 }

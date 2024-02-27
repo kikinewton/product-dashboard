@@ -27,7 +27,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,7 +35,7 @@ import java.util.UUID;
 @Entity
 @NoArgsConstructor
 @Table(name = "app_user")
-@SQLDelete(sql = "UPDATE app_user SET deleted = true, deleted_at = CURRENT_TIMESTAMP WHERE id=?")
+@SQLDelete(sql = "UPDATE app_user SET deleted = true, deleted_at = CURRENT_TIMESTAMP, enabled = false WHERE id=?")
 @SQLRestriction(value = "deleted=false")
 public class User implements UserDetails {
 
@@ -62,7 +61,7 @@ public class User implements UserDetails {
 
     @JsonIgnore
     @FutureOrPresent
-    private Date lastLogin;
+    private Instant lastLogin;
 
     private boolean changedDefaultPassword;
 
@@ -83,6 +82,9 @@ public class User implements UserDetails {
     private boolean deleted;
 
     private Instant deletedAt;
+
+    @Column(name = "enabled")
+    private boolean enabled;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -109,8 +111,4 @@ public class User implements UserDetails {
         return true;
     }
 
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
 }

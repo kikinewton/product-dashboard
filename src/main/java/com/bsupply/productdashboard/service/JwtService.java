@@ -1,5 +1,9 @@
 package com.bsupply.productdashboard.service;
 
+import com.bsupply.productdashboard.dto.response.LoginResponse;
+import com.bsupply.productdashboard.dto.response.UserResponse;
+import com.bsupply.productdashboard.entity.User;
+import com.bsupply.productdashboard.factory.UserResponseFactory;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -35,8 +39,10 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+    public LoginResponse generateToken(UserDetails userDetails) {
+        String generatedToken = generateToken(new HashMap<>(), userDetails);
+        UserResponse user = UserResponseFactory.getUserResponse((User) userDetails);
+        return new LoginResponse(generatedToken, getExpirationTime(), user);
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {

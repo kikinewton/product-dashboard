@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,6 +39,7 @@ public class ProductOrderController {
     private final ProductOrderService productOrderService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_OPERATIONS')")
     public ResponseEntity<Void> addProductOrder(@RequestBody @Valid ProductOrderRequest productOrderRequest) {
 
         productOrderService.addProductOrder(productOrderRequest);
@@ -89,6 +91,7 @@ public class ProductOrderController {
     }
 
     @PostMapping("/{productOrderId}/fulfillment")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_OPERATIONS')")
     public ResponseEntity<Void> orderFulfillment(
             @PathVariable UUID productOrderId,
             @Valid @RequestBody OrderFulfillmentRequest orderFulfillmentRequest) {
@@ -98,6 +101,7 @@ public class ProductOrderController {
     }
 
     @PutMapping("/{productOrderId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_OPERATIONS')")
     public ResponseEntity<ProductOrderResponse> updateProductOrder(
             @PathVariable UUID productOrderId,
             @RequestBody @Valid ProductOrderRequest productOrderRequest) {
@@ -107,6 +111,7 @@ public class ProductOrderController {
     }
 
     @PutMapping("/{productOrderId}/orderDetails/{orderDetailId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_UPDATER')")
     public ResponseEntity<ProductOrderResponse> updateOrderDetails(
             @PathVariable UUID productOrderId,
             @PathVariable UUID orderDetailId,
@@ -118,6 +123,7 @@ public class ProductOrderController {
     }
 
     @PutMapping("/{productOrderId}/orderFulfillments/{orderFulfillmentId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_UPDATER')")
     public ResponseEntity<ProductOrderResponse> updateOrderFulfillment(
             @PathVariable UUID productOrderId,
             @PathVariable UUID orderFulfillmentId,

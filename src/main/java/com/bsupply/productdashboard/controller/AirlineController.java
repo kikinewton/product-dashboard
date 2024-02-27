@@ -6,6 +6,7 @@ import com.bsupply.productdashboard.service.AirlineService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -59,6 +60,7 @@ public class AirlineController {
     }
 
     @DeleteMapping("/{airlineId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_OPERATIONS')")
     public ResponseEntity<Void> deleteAirline(@PathVariable(name = "airlineId") UUID airlineId) {
 
         airlineService.deleteAirline(airlineId);

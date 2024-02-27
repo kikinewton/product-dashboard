@@ -7,10 +7,10 @@ import com.bsupply.productdashboard.dto.response.UserResponse;
 import com.bsupply.productdashboard.entity.User;
 import com.bsupply.productdashboard.service.AuthenticationService;
 import com.bsupply.productdashboard.service.JwtService;
-import com.bsupply.productdashboard.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,9 +25,9 @@ public class AuthenticationController {
 
     private final JwtService jwtService;
     private final AuthenticationService authenticationService;
-    private final UserService userService;
 
     @PostMapping("/signup")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<UserResponse> register(@RequestBody @Valid UserRegistrationRequest userRegistrationRequest) {
 
         UserResponse userResponse = authenticationService.signUp(userRegistrationRequest);
@@ -38,9 +38,7 @@ public class AuthenticationController {
     public ResponseEntity<LoginResponse> authenticate(@RequestBody @Valid LoginRequest loginRequest) {
 
         User authenticatedUser = authenticationService.authenticate(loginRequest);
-        String generatedToken = jwtService.generateToken(authenticatedUser);
-        UserResponse user = userService.getUserByEmail(loginRequest.email());
-        LoginResponse loginResponse = new LoginResponse(generatedToken, jwtService.getExpirationTime(), user);
+        LoginResponse loginResponse = jwtService.generateToken(authenticatedUser);
         return ResponseEntity.ok(loginResponse);
     }
 }

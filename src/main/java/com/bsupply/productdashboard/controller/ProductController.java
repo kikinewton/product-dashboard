@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,6 +32,7 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_OPERATIONS')")
     public ResponseEntity<Void> addProduct(@RequestBody ProductRequest productRequest) {
 
         productService.addProduct(productRequest);
@@ -64,6 +66,7 @@ public class ProductController {
     }
 
     @PutMapping("/{productId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_OPERATIONS')")
     public ResponseEntity<ProductResponse> updateProduct(
             @PathVariable UUID productId,
             @RequestBody ProductRequest productRequest) {
@@ -73,6 +76,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/{productId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_OPERATIONS')")
     public ResponseEntity<Void> deleteProduct(@PathVariable UUID productId) {
 
         productService.deleteProduct(productId);
