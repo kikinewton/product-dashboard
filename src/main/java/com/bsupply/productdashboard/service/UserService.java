@@ -1,15 +1,18 @@
 package com.bsupply.productdashboard.service;
 
 import com.bsupply.productdashboard.dto.request.UpdateUserRequest;
+import com.bsupply.productdashboard.dto.request.UserRegistrationRequest;
 import com.bsupply.productdashboard.dto.response.UserResponse;
 import com.bsupply.productdashboard.entity.User;
 import com.bsupply.productdashboard.exception.UserNotFoundException;
+import com.bsupply.productdashboard.exception.UserWithEmailExistException;
 import com.bsupply.productdashboard.factory.UserResponseFactory;
 import com.bsupply.productdashboard.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,6 +26,7 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+    private final PasswordEncoder passwordEncoder;
 
     @Cacheable(value = "users")
     public List<UserResponse> getUsers() {
@@ -91,4 +95,28 @@ public class UserService {
         user.setEnabled(false);
         userRepository.save(user);
     }
+
+    @CacheEvict(value = {"users", "userById", "userByEmail"})
+    public UserResponse addUser(UserRegistrationRequest userRegistrationRequest) {
+
+        checkUserWithEmailExist(userRegistrationRequest.email());
+        log.info("Add new user {}", userRegistrationRequest);
+        User user = new User();
+        user.setEmail(userRegistrationRequest.email());
+        user.setFirstName(userRegistrationRequest.firstName());
+        user.setLastName(userRegistrationRequest.lastName());
+        user.setPassword(passwordEncoder.encode("P@ssword1.com"));
+        user.setRole(userRegistrationRequest.role());
+        User savedUser = userRepository.save(user);
+        return UserResponseFactory.getUserResponse(savedUser);
+    }
+
+    private void checkUserWithEmailExist(String email) {
+
+        log.info("Check if user {} exists", email);
+        if (userRepository.existsByEmail(email)) {
+            throw new UserWithEmailExistException(email);
+        }
+    }
+
 }
