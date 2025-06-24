@@ -129,9 +129,14 @@
             <artifactId>thymeleaf-spring5</artifactId>
             <version>3.0.15.RELEASE</version>
         </dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-csv</artifactId>
+			<version>1.10.0</version>
+		</dependency>
 
 
-    </dependencies>
+	</dependencies>
 
 	<build>
 		<plugins>

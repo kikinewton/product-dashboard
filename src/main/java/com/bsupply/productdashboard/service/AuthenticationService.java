@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
@@ -18,8 +17,6 @@ import java.util.concurrent.CompletableFuture;
 public class AuthenticationService {
 
     private final UserRepository userRepository;
-
-    private final PasswordEncoder passwordEncoder;
 
     private final AuthenticationManager authenticationManager;
 
